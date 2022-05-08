@@ -49,7 +49,6 @@ int main(int argc, char ** argv) {
 /*!\brief initialise les paramètres OpenGL et les données */
 static void init(void) {
   glEnable(GL_DEPTH_TEST);
-  glEnable(GL_CULL_FACE);
   glClearColor(1.0f, 0.7f, 0.7f, 0.0f);
   _pId  = gl4duCreateProgram("<vs>shaders/dep3d.vs", "<fs>shaders/dep3d.fs", NULL);
   gl4duGenMatrix(GL_FLOAT, "modelViewMatrix");
@@ -78,149 +77,154 @@ static void car(void) {
   /* données-sommets envoyée dans le VBO ARRAY_BUFFER */
   GLfloat data[] = {
     /* 4 sommets de la face de devant               0   */   
-    2, -0.2, -0.1, 0, 0, 0,
-    2, 0.2, -0.1, 0, 0, 0,
-    2, -0.2, 0.2, 0, 0, 0,
-    2, 0.2, 0.2, 0, 0, 0,
+    2, -0.2, -0.1,  1.0f, 0, 0,
+    2, 0.2, -0.1,  1.0f, 0, 0,
+    2, -0.2, 0.2, 1.0f, 0, 0,
+    2, 0.2, 0.2, 1.0f, 0, 0,
     /* 4 sommets de la face de devant coté gauche   4*/
-    2, -0.2, 0.2, 0, 0, 0,
-    2, -0.2, -0.1, 0, 0, 0,
-    0, -0.5, -0.2, 0, 0, 0,
-    0, -0.4, 0.5, 0, 0, 0,
+    2, -0.2, 0.2, 1.0f, 0, 0,
+    2, -0.2, -0.1, 1.0f, 0, 0,
+    0, -0.4, 0.5, 1.0f, 0, 0,
+    0, -0.5, -0.2, 1.0f, 0, 0,
     /* 4 sommets de la face de devant coté droit    8*/
-    2, 0.2, 0.2, 0, 0, 0,
-    2, 0.2, -0.1, 0, 0, 0,
-    0, 0.5, -0.2, 0, 0, 0,
-    0, 0.4, 0.5, 0, 0, 0,
+    2, 0.2, 0.2, 1.0f, 0, 0,
+    2, 0.2, -0.1, 1.0f, 0, 0,
+    0, 0.4, 0.5, 1.0f, 0, 0,
+    0, 0.5, -0.2, 1.0f, 0, 0,
     /* 4 sommets de la face de devant coté haut     12*/
-    2, 0.2, 0.2, 0, 0, 0,
-    2, -0.2, 0.2, 0, 0, 0,
-    0, -0.4, 0.5, 0, 0, 0,
-    0, 0.4, 0.5, 0, 0, 0,
+    2, 0.2, -0.1, 1.0f, 0, 0,
+    2, -0.2, -0.1, 1.0f, 0, 0,
+    0, 0.4, -0.2, 1.0f, 0, 0,
+    0, -0.4, -0.2, 1.0f, 0, 0,
+    /* 4 sommets de la face de devant coté bas     12*/
+    2, 0.2, 0.2, 1.0f, 0, 0,
+    2, -0.2, 0.2, 1.0f, 0, 0,
+    0, 0.4, 0.5, 1.0f, 0, 0,
+    0, -0.4, 0.5, 1.0f, 0, 0,
     /* 4 sommets de du milieu                       14*/
-    0, 0.4, 0.5, 0, 0, 0,
-    0, 0.5, -0.2, 0, 0, 0,
-    0, -0.5, -0.2, 0, 0, 0,
-    0, -0.4, 0.5, 0, 0, 0,
+    0, 0.4, 0.5, 1.0f, 0, 0,
+    0, 0.5, -0.2, 1.0f, 0, 0,
+    0, -0.4, 0.5, 1.0f, 0, 0,
+    0, -0.5, -0.2, 1.0f, 0, 0,
     /* 4 sommets de la face du milieu gauche             16*/
-    0, -0.4, 0.5, 0, 0, 0,
-    0, -0.5, -0.2, 0, 0, 0,
-    -1, -0.8, -0.2, 0, 0, 0,
-    -1, -0.8, 0.8, 0, 0, 0,
+    0, -0.4, 0.5, 1.0f, 0, 0,
+    0, -0.5, -0.2, 1.0f, 0, 0,
+    -1, -0.8, 0.8, 1.0f, 0, 0,
+    -1, -0.8, -0.2, 1.0f, 0, 0,
     /* 4 sommets de la face du milieu droite             20*/
-    0, 0.4, 0.5, 0, 0, 0,
-    0, 0.5, -0.2, 0, 0, 0,
-    -1, 0.8, -0.2, 0, 0, 0,
-    -1, 0.8, 0.8, 0, 0, 0,
+    0, 0.4, 0.5, 1.0f, 0, 0,
+    0, 0.5, -0.2, 1.0f, 0, 0,
+    -1, 0.8, 0.8, 1.0f, 0, 0,
+    -1, 0.8, -0.2, 1.0f, 0, 0,
     /* 4 sommets de la face du milieu haut             24*/
-    -1, -0.8, 0.8, 0, 0, 0,
+    -1, -0.8, 0.8, 1.0f, 0, 0,
     0,-0.4,0.5,0,0,0,
-    0,0.4,0.5,0,0,0,
     -1,0.8,0.8,0,0,0,
+    0,0.4,0.5,0,0,0,
     /* 4 sommets de la face du milieu bas             28*/
-    -1, 0.8, -0.2, 0, 0, 0,
+    -1, 0.8, -0.2, 1.0f, 0, 0,
     0,0.5,-0.2,0,0,0,
-    0,-0.5,-0.2,0,0,0,
     -1,-0.8,-0.2,0,0,0,
+    0,-0.5,-0.2,0,0,0,
     /* 4 sommets de la face du milieu                 32*/
     0,-0.4,0.5,0,0,0,
     0,-0.5,-0.2,0,0,0,
-    0,0.5,-0.2,0,0,0,
     0,0.4,0.5,0,0,0,
+    0,0.5,-0.2,0,0,0,
     /* 4 sommets central haut    haut                     36*/
     -2.5,-0.8,0.8,0,0,0,
     -1,-0.8,0.8,0,0,0,
-    -1,0.8,0.8,0,0,0,
     -2.5,0.8,0.8,0,0,0,
+    -1,0.8,0.8,0,0,0,
     /* 4 sommets central haut bas                         40*/
     -2.5,-0.8,0.3,0,0,0,
     -1,-0.8,0.3,0,0,0,
-    -1,0.8,0.3,0,0,0,
     -2.5,0.8,0.3,0,0,0,
+    -1,0.8,0.3,0,0,0,
     /* 4 sommets central haut  gauche                       44*/
     -2.5,-0.8,0.8,0,0,0,
     -2.5,-0.8,0.3,0,0,0,
-    -1,-0.8,0.3,0,0,0,
     -1,-0.8,0.8,0,0,0,
+    -1,-0.8,0.3,0,0,0,
     /* 4 sommets central haut droit                     48*/
     -2.5,0.8,0.8,0,0,0,
     -2.5,0.8,0.3,0,0,0,
-    -1,0.8,0.3,0,0,0,
     -1,0.8,0.8,0,0,0,
+    -1,0.8,0.3,0,0,0,
     /* 4 sommets aile gauche haut                         52*/
     -2.5,-3,0.3,0,0,0,
     -2,-3,0.3,0,0,0,
-    -1,-0.8,0.3,0,0,0,
     -2.5,-0.8,0.3,0,0,0,
+    -1,-0.8,0.3,0,0,0,
     /* 4 sommets aile gauche bas                         56*/
     -2.5,-3,0,0,0,0,
     -2,-3,0,0,0,0,
-    -1,-0.8,-0.2,0,0,0,
     -2.5,-0.8,-0.2,0,0,0,
+    -1,-0.8,-0.2,0,0,0,
     /* 4 sommets aile gauche devant                         60*/
     -2,-3,0.3,0,0,0,
     -2,-3,0,0,0,0,
-    -1,-0.8,-0.2,0,0,0,
     -1,-0.8,0.3,0,0,0,
+    -1,-0.8,-0.2,0,0,0,
     /* 4 sommets aile gauche derriere                         64*/
     -2.5,-0.8,0.3,0,0,0,
     -2.5,-0.8,-0.2,0,0,0,
-    -2.5,-3,0,0,0,0,
     -2.5,-3,0.3,0,0,0,
+    -2.5,-3,0,0,0,0,
     /* 4 sommets aile droit haut                         68*/
     -2.5,3,0.3,0,0,0,
     -2,3,0.3,0,0,0,
-    -1,0.8,0.3,0,0,0,
     -2.5,0.8,0.3,0,0,0,
+    -1,0.8,0.3,0,0,0,
     /* 4 sommets aile droit bas                         56*/
     -2.5,3,0,0,0,0,
     -2,3,0,0,0,0,
-    -1,0.8,-0.2,0,0,0,
     -2.5,0.8,-0.2,0,0,0,
+    -1,0.8,-0.2,0,0,0,
     /* 4 sommets aile droit devant                         60*/
     -2,3,0.3,0,0,0,
     -2,3,0,0,0,0,
-    -1,0.8,-0.2,0,0,0,
     -1,0.8,0.3,0,0,0,
+    -1,0.8,-0.2,0,0,0,
     /* 4 sommets aile gauche derriere                         64*/
     -2.5,0.8,0.3,0,0,0,
     -2.5,0.8,-0.2,0,0,0,
-    -2.5,3,0,0,0,0,
     -2.5,3,0.3,0,0,0,
+    -2.5,3,0,0,0,0,
     /* 4 sommets central milieu bas                         40*/
     -2.5,-0.8,-0.2,0,0,0,
     -1,-0.8,-0.2,0,0,0,
-    -1,0.8,-0.2,0,0,0,
     -2.5,0.8,-0.2,0,0,0,
+    -1,0.8,-0.2,0,0,0,
     /* 4 sommets trou derriere                  44*/
     -3,-0.2,0.2,0,0,0,
     -3,-0.2,-0.2,0,0,0,
-    -3,0.2,-0.2,0,0,0,
     -3,0.2,0.2,0,0,0,
+    -3,0.2,-0.2,0,0,0,
     /* 4 sommets trou gauche                  48*/
     -3,-0.2,0.2,0,0,0,
     -3,-0.2,-0.2,0,0,0,
-    -2.5,-0.2,-0.2,0,0,0,
     -2.5,-0.2,0.2,0,0,0,
+    -2.5,-0.2,-0.2,0,0,0,
     /* 4 sommets trou droit                  52*/
     -3,0.2,0.2,0,0,0,
     -3,0.2,-0.2,0,0,0,
-    -2.5,0.2,-0.2,0,0,0,
     -2.5,0.2,0.2,0,0,0,
+    -2.5,0.2,-0.2,0,0,0,
     /* 4 sommets trou haut                  56*/
     -3,-0.2,0.2,0,0,0,
     -3,0.2,0.2,0,0,0,
-    -2.5,0.2,0.2,0,0,0,
     -2.5,-0.2,0.2,0,0,0,
+    -2.5,0.2,0.2,0,0,0,
     /* 4 sommets trou bas                  60*/
     -3,-0.2,-0.2,0,0,0,
     -3,0.2,-0.2,0,0,0,
-    -2.5,0.2,-0.2,0,0,0,
     -2.5,-0.2,-0.2,0,0,0,
+    -2.5,0.2,-0.2,0,0,0,
 
   };
   /* Création du programme shader (voir le dossier shader) */
-  _pId2 = gl4duCreateProgram("<vs>shaders/dep3d.vs", "<fs>shaders/dep3d.fs", NULL);
+  _pId2 = gl4duCreateProgram("<vs>shaders/basic.vs", "<fs>shaders/basic.fs", NULL);
   /* Set de la couleur (RGBA) d'effacement OpenGL */
   glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
   /* activation du test de profondeur afin de prendre en compte la
@@ -301,9 +305,9 @@ static void draw(void) {
   gl4duSendMatrices();
   glUniform4fv(glGetUniformLocation(_pId, "couleur"), 1, jaune);
   gl4dgDraw(_torus);
+
   /* lier (mettre en avant ou "courante") la matrice vue créée dans
    * init */
-   gl4duBindMatrix("modelViewMatrix");
   gl4duLoadIdentityf();
   gl4duSendMatrices();
   glUseProgram(_pId2);
@@ -313,7 +317,9 @@ static void draw(void) {
     gl4duRotatef(i, 1, 1, 0);
     gl4duScalef(1,1, 1);
     gl4duSendMatrices();
+
   } gl4duPopMatrix();
+  gl4duBindMatrix("modelViewMatrix");
 
   i++;
   if(i > 360)
@@ -326,36 +332,36 @@ static void draw(void) {
 
 
 
-    glDrawArrays(GL_LINE_LOOP, 0, 4);
-    glDrawArrays(GL_LINE_LOOP, 4, 4);
-    glDrawArrays(GL_LINE_LOOP, 8, 4);
-    glDrawArrays(GL_LINE_LOOP, 12, 4);
-    glDrawArrays(GL_LINE_LOOP, 16, 4);
-    glDrawArrays(GL_LINE_LOOP, 20, 4);
-    glDrawArrays(GL_LINE_LOOP, 24, 4);
-    glDrawArrays(GL_LINE_LOOP, 28, 4);
-    glDrawArrays(GL_LINE_LOOP, 32, 4);
-    glDrawArrays(GL_LINE_LOOP, 36, 4);
-    glDrawArrays(GL_LINE_LOOP, 40, 4);
-    glDrawArrays(GL_LINE_LOOP, 44, 4);
-    glDrawArrays(GL_LINE_LOOP, 48, 4);
-    glDrawArrays(GL_LINE_LOOP, 52, 4);
-    glDrawArrays(GL_LINE_LOOP, 56, 4);
-    glDrawArrays(GL_LINE_LOOP, 60, 4);
-    glDrawArrays(GL_LINE_LOOP, 64, 4);
-    glDrawArrays(GL_LINE_LOOP, 68, 4);
-    glDrawArrays(GL_LINE_LOOP, 72, 4);
-    glDrawArrays(GL_LINE_LOOP, 76, 4);
-    glDrawArrays(GL_LINE_LOOP, 80, 4);
-    glDrawArrays(GL_LINE_LOOP, 84, 4);
-    glDrawArrays(GL_LINE_LOOP, 88, 4);
-    glDrawArrays(GL_LINE_LOOP, 92, 4);
-    glDrawArrays(GL_LINE_LOOP, 96, 4);
-    glDrawArrays(GL_LINE_LOOP, 100, 4);
-    glDrawArrays(GL_LINE_LOOP, 104, 4);
-    glDrawArrays(GL_LINE_LOOP, 108, 4);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-     
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 4, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 8, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 12, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 16, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 20, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 24, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 28, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 32, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 36, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 40, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 44, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 48, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 52, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 56, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 60, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 64, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 68, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 72, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 76, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 80, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 84, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 88, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 92, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 96, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 100, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 104, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 108, 4);
+
+
     
   gl4duSendMatrices();
   /* Dessiner le VAO comme une bande d'un triangle avec 3 sommets
