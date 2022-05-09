@@ -1,10 +1,3 @@
-/*!\file dep3d.vs
- *
- * \brief Transformations matricielles standards pour les sommets, les
- * normales et les coordonnées de texture
- * \author Farès BELHADJ, amsi@ai.univ-paris8.fr 
- * \date April 15 2016
- */
 #version 330
 
 uniform mat4 modelViewMatrix;
