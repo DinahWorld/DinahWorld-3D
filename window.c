@@ -11,9 +11,9 @@ static void init(void);
 static void resize(int w, int h);
 static void draw(void);
 static void quit(void);
-static void spaceship(void);
+static void spaceship_init(void);
 static void draw_car(void);
-
+static void key(int keycode);
 
 /*!\brief dimensions de la fenêtre */
 static int _wW = 800, _wH = 600;
@@ -28,9 +28,46 @@ static GLuint _buffer[2] = { 0 };
 static GLuint _buffer2 = 0;
 /*!\brief identifiant du (futur) GLSL program */
 static GLuint _pId2 = 0;
-static int i = 0;
-static int particle = 0;
+static GLuint _pId3 = 0;
+static float i = 0;
+static float velocity = 0.01f;
+static float acc = 0.001f;
+static float xparticle[5] = {-5,-5,-5,-5,-5};
+static float xparticle_i[5] = {0.5f,0.5f,0.5f,0.5f,0.5f};
+static float yparticle[5] = {0,0,0,0,0};
+GLfloat rouge[] = {1, 0, 0, 1}, vert[] = {0, 1, 0, 1}, bleu[] = {0.4f, 0.4f, 0.8f, 1}, jaune[] = {1, 1, 0, 1};
+GLfloat orange[] = {1.0f, 0.6f, 0.6f, 5};
+GLfloat rose[] = {1,0.6f, 1};
 
+
+// create a constant
+
+typedef struct spaceship spaceship;
+/*!\brief a data structure for storing camera position and
+ * orientation */
+struct spaceship {
+  GLfloat x, y, z;
+};
+static spaceship _spaceship = {0, 0, -20};
+
+typedef struct stars stars;
+/*!\brief a data structure for storing camera position and
+ * orientation */
+struct stars {
+  GLfloat x, y, z,size_x,size_y,size_z;; 
+};
+/*!\brief the used camera */
+static stars _stars[20];
+
+typedef struct cam cam;
+/*!\brief a data structure for storing camera position and
+ * orientation */
+struct cam {
+  GLfloat x, y, z;
+};
+
+/*!\brief the used camera */
+static cam _cam = {0, 0, 10};
 
 /*!\brief La fonction principale créé la fenêtre d'affichage,
  * initialise GL et les données, affecte les fonctions d'événements et
@@ -40,10 +77,11 @@ int main(int argc, char ** argv) {
 			 _wW, _wH, GL4DW_RESIZABLE | GL4DW_SHOWN))
     return 1;
   init();
-  spaceship();
+  spaceship_init();
   atexit(quit);
   gl4duwResizeFunc(resize);
   gl4duwDisplayFunc(draw);
+  gl4duwKeyDownFunc(key);
   gl4duwMainLoop();
   return 0;
 }
@@ -52,6 +90,7 @@ static void init(void) {
   glEnable(GL_DEPTH_TEST);
   glClearColor(1.96f, 3.52f, 7.05f, 1.0f);
   _pId  = gl4duCreateProgram("<vs>shaders/dep3d.vs", "<fs>shaders/dep3d.fs", NULL);
+  _pId3 = gl4duCreateProgram("<vs>shaders/dep3d.vs", "<fs>shaders/dep3d_2.fs", NULL);
   gl4duGenMatrix(GL_FLOAT, "modelViewMatrix");
   gl4duGenMatrix(GL_FLOAT, "projectionMatrix");
   resize(_wW, _wH);
@@ -74,12 +113,22 @@ static void resize(int w, int h) {
 }
 
 /*!\brief initialise les paramètres OpenGL et les données. */
-static void spaceship(void) {
+static void spaceship_init(void) {
   GLuint idata[696];
   for(int i = 0; i < 696; i++) {
     idata[i] = i;
   }
-  
+  for(int i = 0; i < 20; i++) {    
+    // random x position between -20 and 20
+
+    _stars[i].x = (float)rand()/RAND_MAX * 80 - 40;
+    _stars[i].y = (float)rand()/RAND_MAX * 80 - 40;
+    _stars[i].z = (float)rand()/RAND_MAX * 80 - 40;
+    _stars[i].size_x = (float)rand()/RAND_MAX * 0.5 + 0.5;
+    _stars[i].size_y = (float)rand()/RAND_MAX * 0.5 + 0.5;
+    _stars[i].size_z = (float)rand()/RAND_MAX * 0.5 + 0.5;
+
+  }
   /* données-sommets envoyée dans le VBO ARRAY_BUFFER */
   GLfloat data[] = {
     /* 4 sommets de la face de devant               0   */   
@@ -227,6 +276,11 @@ static void spaceship(void) {
     -2.5, -0.8, -0.2,0.3f, 0.3f, 0.4f,
     -2.5, -3, 0.3,0.3f, 0.3f, 0.4f,
     -2.5, -3, 0,0.3f, 0.3f, 0.4f,
+
+    -2.5, 0.8, 0.8,0.3f, 0.3f, 0.4f,
+    -2.5, 0.8, -0.2,0.3f, 0.3f, 0.4f,
+    -2.5, -0.8, 0.8,0.3f, 0.3f, 0.4f,
+    -2.5, -0.8, -0.2,0.3f, 0.3f, 0.4f,
   };
   /* Création du programme shader (voir le dossier shader) */
   _pId2 = gl4duCreateProgram("<vs>shaders/basic.vs", "<fs>shaders/basic.fs", NULL);
@@ -280,22 +334,20 @@ static void spaceship(void) {
 
 /*!\brief dessine dans le contexte OpenGL actif. */
 static void draw(void) {
-    /* une variable d'angle, maintenant elle passe ne degrés */
-  static GLfloat a = 0;
-  GLfloat rouge[] = {1, 0, 0, 1}, vert[] = {0, 1, 0, 1}, bleu[] = {0, 0, 1, 1}, jaune[] = {1, 1, 0, 1};
-  GLfloat orange[] = {1.0f, 0.6f, 0.6f, 5};
+  // LookAt
+
       static GLfloat pos_ship = 0.0f;
-    static GLfloat xparticle = -7.0f;
     static GLfloat size = 0.1f;
-    static float yparticle = 0.0f;
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glUseProgram(_pId);
+      gl4duLookAtf(10, 0, 0, 0 , 1.0, 0 , 0.0, 0.0,0.0);
+
   gl4duBindMatrix("modelViewMatrix");
   gl4duLoadIdentityf();
-  glUseProgram(_pId);
   
   // Circle
- gl4duTranslatef(5, 5, -20);
+ gl4duTranslatef(5, 5, -50);
   gl4duPushMatrix(); {
     gl4duScalef(2.0f, 2.0f, 2.0f);
     gl4duSendMatrices();
@@ -303,53 +355,95 @@ static void draw(void) {
   glUniform4fv(glGetUniformLocation(_pId, "couleur"), 1, orange);
   gl4dgDraw(_sphere);
 
-  //random max_particle between 0 and 2
-  gl4duTranslatef(xparticle, yparticle, 0);
-      gl4duRotatef(i, 1, 1, 1);
-  gl4duPushMatrix(); {
-    gl4duScalef(size, size, size);
-    gl4duSendMatrices();
-  } gl4duPopMatrix();
-  glUniform4fv(glGetUniformLocation(_pId, "couleur"), 1, orange);
-  gl4dgDraw(_cube);
-
-  xparticle -= 0.05f;
-  size += 0.005f;
-
-  if(size > 0.2f){
-    size = 0.0f;
-    xparticle = -7 + pos_ship;
-    //random yparticle between -0.8 and 1.5 float
-    yparticle = (float)rand() / (float)RAND_MAX * 1.5f - 0.8f;
+  for(int i = 0; i < 10; i++) {
+    // sphere with random values
+    gl4duPushMatrix(); {
+      gl4duTranslatef(_stars[i].x, _stars[i].y, _stars[i].z);
+      gl4duScalef(0.5f, 0.5f, 0.5f);
+      gl4duSendMatrices();
+    } gl4duPopMatrix();
+    glUniform4fv(glGetUniformLocation(_pId, "couleur"), 1, rose);
+    gl4dgDraw(_sphere);
   }
+   for(int i = 10; i < 20; i++) {
+    // sphere with random values
+    gl4duPushMatrix(); {
+      gl4duTranslatef(_stars[i].x, _stars[i].y, _stars[i].z);
+      gl4duScalef(0.5f, 0.5f, 0.5f);
+      gl4duSendMatrices();
+    } gl4duPopMatrix();
+    glUniform4fv(glGetUniformLocation(_pId, "couleur"), 1, orange);
+    gl4dgDraw(_sphere);
+  }
+  //random max_particle between 0 and 2
   
   
-  GLfloat pos_ship_ = 0.0f;
+  for(int i = 0;i < 3;i++){
+    xparticle[i] -= xparticle_i[i]; 
+    if (xparticle[i] < -5) {
+      size = 0.0f;
+    
+      // random between 0.05 and 0.08 float
+      xparticle_i[i] = (float)rand() / (float)RAND_MAX * 0.05f + 0.05f;      
+     xparticle[i] = -3;
+    
+    //random yparticle between -1 and 2 float
+      yparticle[i] = (float)rand()/RAND_MAX * 2 - 1;
+      }
+  }
 
+  if(size < 0.1f){
+  size += 0.005f;
+  }
+
+  /*
+  _spaceship.z -= velocity;
+  _spaceship.x += velocity;
+  _spaceship.y += velocity;
+  */
+  i += velocity;
+  velocity += acc;
+  if(i > 10){
+      velocity = 0.001f;
+      acc = -acc;
+      printf("%f\n", acc);
+      i = 9.90;
+  }else  if(i < -10){
+          velocity = 0.001f;
+          acc = -acc;
+          i = -9.90;
+      
+  }
   /* lier (mettre en avant ou "courante") la matrice vue créée dans
    * init */
   gl4duLoadIdentityf();
   gl4duSendMatrices();
   glUseProgram(_pId2);
-  gl4duTranslatef(0, 0, -10.0);
+
+  gl4duTranslatef(_spaceship.x, _spaceship.y, _spaceship.z);
   gl4duPushMatrix(); {
-      gl4duTranslatef(pos_ship_, 0, 0);
 
-    gl4duRotatef(280, 1, 1, 1);
+    gl4duRotatef(280, 1, 0, 0);
+    gl4duRotatef(60, 0, 0, 1);
+    gl4duRotatef(i, 1, 0, 0);
     gl4duScalef(1,1, 1);
+    for(int i = 0; i < 3; i++){
+    gl4duPushMatrix(); {
+      gl4duTranslatef(xparticle[i], yparticle[i], 0);
+      gl4duScalef(size, size, size);
+      gl4duSendMatrices();
+    } gl4duPopMatrix();
+    gl4dgDraw(_cube);
+    }
     gl4duSendMatrices();
-
   } gl4duPopMatrix();
-    pos_ship_ += 1.0f;
+
+  glUniform4fv(glGetUniformLocation(_pId2, "couleur"), 1, bleu);
 
   gl4duBindMatrix("modelViewMatrix");
 
-  i++;
-  if(i > 360)
-    i = 0;
-
-  printf("%d\n", i);
   glLineWidth(3.0f);
+
   /* Lier le VAO-machine-GL à l'identifiant VAO _vao */
   glBindVertexArray(_vao);
 
@@ -383,6 +477,7 @@ static void draw(void) {
     glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, (const GLvoid *)(104 * sizeof(GLuint)));
     glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, (const GLvoid *)(108 * sizeof(GLuint)));
     glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, (const GLvoid *)(112 * sizeof(GLuint)));
+    glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, (const GLvoid *)(116 * sizeof(GLuint)));
 
   gl4duSendMatrices();
   /* Dessiner le VAO comme une bande d'un triangle avec 3 sommets
@@ -407,4 +502,27 @@ static void quit(void) {
     glDeleteBuffers(2, _buffer);
   /* nettoyage des éléments utilisés par la bibliothèque GL4Dummies */
   gl4duClean(GL4DU_ALL);
+}
+
+
+void key(int keycode) {
+  //move spaceship
+  if(keycode == GL4DK_LEFT) {
+        _cam.y -= 0.01;
+
+  }
+  if(keycode == GL4DK_RIGHT) {
+        _cam.y += 0.01;
+
+  }
+
+  //move spaceship
+  if(keycode == GL4DK_UP) {
+        _cam.x += 2;
+  }
+  if(keycode == GL4DK_DOWN) {
+    _cam.x += 2;
+  }
+  //move spaceship
+
 }

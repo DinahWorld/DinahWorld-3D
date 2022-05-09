@@ -22,6 +22,7 @@ layout (location = 1) in vec3 vsiColor;
 out vec4 vsoColor;
 
 uniform mat4 projectionMatrix, modelViewMatrix;
+out vec3 vsoNormal;
 
 
 void main(void) {
@@ -30,7 +31,11 @@ void main(void) {
    * z = 0.0 et w = 1.0 ; elle est multipliée à gauche par une matrice
    * de modélisation puis de projection (lire de droite à gauche à
    * partir du sommet) */
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(vsiPosition, 1.0);
+   
+  vsoNormal = (transpose(inverse(modelViewMatrix))  * vec4(vsiPosition, 1.0)).xyz;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(vsiPosition.xyz, 1.0);
+
   /* la couleur en sortie du vertex shader vers le fragment shader, vsoColor est un vecteur 4D (w = 1) alors que la couleur reçu est 3D */
   vsoColor = vec4(vsiColor, 1.0);
+  
 }
