@@ -67,7 +67,7 @@ struct cam {
 };
 
 /*!\brief the used camera */
-static cam _cam = {0, 0, 10};
+static cam _cam = {0, 0, -40};
 
 /*!\brief La fonction principale créé la fenêtre d'affichage,
  * initialise GL et les données, affecte les fonctions d'événements et
@@ -340,11 +340,10 @@ static void draw(void) {
     static GLfloat size = 0.1f;
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glUseProgram(_pId);
-      gl4duLookAtf(10, 0, 0, 0 , 1.0, 0 , 0.0, 0.0,0.0);
-
   gl4duBindMatrix("modelViewMatrix");
   gl4duLoadIdentityf();
+  gl4duLookAtf(_cam.x, _cam.y, _cam.z, 0, 0, 0, 0, 1, 0);
+  glUseProgram(_pId);
   
   // Circle
  gl4duTranslatef(5, 5, -50);
@@ -418,6 +417,9 @@ static void draw(void) {
    * init */
   gl4duLoadIdentityf();
   gl4duSendMatrices();
+  gl4duBindMatrix("modelViewMatrix");
+  gl4duLoadIdentityf();
+  gl4duLookAtf(_cam.x, _cam.y, _cam.z, 0, 0, 0, 0, 1, 0);
   glUseProgram(_pId2);
 
   gl4duTranslatef(_spaceship.x, _spaceship.y, _spaceship.z);
@@ -430,17 +432,20 @@ static void draw(void) {
     for(int i = 0; i < 3; i++){
     gl4duPushMatrix(); {
       gl4duTranslatef(xparticle[i], yparticle[i], 0);
-      gl4duScalef(size, size, size);
+      gl4duScalef(size*2, size*2, size*2);
       gl4duSendMatrices();
     } gl4duPopMatrix();
+      glUniform4fv(glGetUniformLocation(_pId, "couleur"), 1, bleu);
+
     gl4dgDraw(_cube);
     }
     gl4duSendMatrices();
   } gl4duPopMatrix();
 
-  glUniform4fv(glGetUniformLocation(_pId2, "couleur"), 1, bleu);
-
-  gl4duBindMatrix("modelViewMatrix");
+  _spaceship.z -= 0.1f;
+  _spaceship.x += 0.06f;
+  _cam.z -= 0.1f;
+  _cam.x += 0.1f;
 
   glLineWidth(3.0f);
 
@@ -508,20 +513,25 @@ static void quit(void) {
 void key(int keycode) {
   //move spaceship
   if(keycode == GL4DK_LEFT) {
-        _cam.y -= 0.01;
+        _cam.x -= 1;
+    printf("%f\n", _cam.x);
 
   }
   if(keycode == GL4DK_RIGHT) {
-        _cam.y += 0.01;
+        _cam.x += 1;
+    printf("%f\n", _cam.x);
 
   }
 
   //move spaceship
   if(keycode == GL4DK_UP) {
-        _cam.x += 2;
+        _cam.z += 2;
+            printf("%f\n", _cam.z);
+
   }
   if(keycode == GL4DK_DOWN) {
-    _cam.x += 2;
+    _cam.z -= 2;
+    printf("%f\n", _cam.z);
   }
   //move spaceship
 
