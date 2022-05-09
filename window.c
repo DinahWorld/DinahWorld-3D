@@ -1,36 +1,41 @@
-/*!\file window.c
- * \brief géométries lumière diffuse et transformations de base en GL4Dummies
- * \author Farès BELHADJ, amsi@ai.univ-paris8.fr
- * \date April 15 2016 */
 #include <stdio.h>
 #include <GL4D/gl4du.h>
 #include <GL4D/gl4df.h>
 #include <GL4D/gl4duw_SDL2.h>
+#include <SDL_mixer.h>
 
-/* Prototypes des fonctions statiques contenues dans ce fichier C */
 static void init(void);
+static void initAudio(const char * filename);
 static void resize(int w, int h);
 static void draw(void);
 static void quit(void);
 static void spaceship_init(void);
-static void draw_car(void);
-static void key(int keycode);
-
 void animation(void);
+
+#define ECHANTILLONS 1024
+
 static int _wW = 800, _wH = 600;
 static GLuint _pId = 0;
 static GLuint _sphere = 0, _cube = 0, _bullet;
 static GLuint _vao = 0;
 static GLuint _buffer[2] = {0};
-static GLuint _buffer2 = 0;
-
+static Sint16 _hauteurs[ECHANTILLONS];
+static Mix_Music * _mmusic = NULL;
 static GLuint _pId2 = 0;
 static GLuint _pId3 = 0;
 
 static float i = 0;
 static float velocity = 0.01f;
-static float size_i;
 static float acc = 0.001f;
+static char step1 = 1;
+static char step2 = 0;
+static char step3 = 0;
+static GLfloat size = 0.0f;
+
+
+static char start = 0;
+
+
 GLfloat bleu[] = {0.4f,0.4f,0.8f,1}; 
 GLfloat orange[] = {1.0f,0.6f,0.6f,5};
 GLfloat rose[] = {1,0.6f,1,1};
@@ -48,9 +53,9 @@ typedef struct stars stars;
 struct stars {GLfloat x, y, z, size_x, size_y, size_z;};
 static stars _stars[20];
 typedef struct cam cam;
-struct cam {GLfloat a, b, c,d,e,f,g,h,i;};
+struct cam {GLfloat a, b, c;};
 
-static cam _cam = {0,0,-40,0,0,0,0,1,0};
+static cam _cam = {-4,24,-71};
 
 int main(int argc, char ** argv) {
     if (!gl4duwCreateWindow(argc, argv, "GL4Dummies", 0, 0,
@@ -61,7 +66,6 @@ int main(int argc, char ** argv) {
     atexit(quit);
     gl4duwResizeFunc(resize);
     gl4duwDisplayFunc(draw);
-    //gl4duwKeyDownFunc(key);
     gl4duwMainLoop();
     return 0;
 }
@@ -77,6 +81,7 @@ static void init(void) {
     _cube = gl4dgGenCubef();
     _bullet = gl4dgGenCubef();
     _sphere = gl4dgGenSpheref(30, 30);
+    initAudio("audio.mp3");
 }
 
 static void resize(int w, int h) {
@@ -102,6 +107,8 @@ static void spaceship_init(void) {
         _stars[i].size_y = (float) rand() / RAND_MAX * 0.5 + 0.5;
         _stars[i].size_z = (float) rand() / RAND_MAX * 0.5 + 0.5;
         _particles[i].i = (float) rand() / (float) RAND_MAX * 0.05f + 0.05f;
+        
+
         _particles[i].y = (float) rand() / (float) RAND_MAX * 10 - 5;
         _particles[i].x = (float) rand() / (float) RAND_MAX * 10 - 5;
 
@@ -282,12 +289,12 @@ static void spaceship_init(void) {
 }
 
 void animation(void){
+
  i += velocity;
     velocity -= acc;
     if (i > 10) {
         velocity = 0.001f;
         acc = -acc;
-        printf("%f\n", acc);
         i = 9.90;
     } else if (i < -20) {
         velocity = 0.01f;
@@ -296,34 +303,76 @@ void animation(void){
     }
      _spaceship.z -= 0.08f;
     _spaceship.x += 0.06f;
-
+    
     _cam.c -= 0.08f;
     _cam.a += 0.09f;
-    _cam.d -= 0.02f;
+
+    for(int i = 0; i < 20; i++) {
+      _particles[i].x -= _particles[i].i;
+      if (_particles[i].x < -8) {
+        size = 0.0f;
+        _particles[i].i = (float) rand() / (float) RAND_MAX * 0.05f + 0.05f;
+        
+        _particles[i].x = -5;
+        //random yparticle between -5 and 5 float
+        _particles[i].y = (float) rand() / (float) RAND_MAX * 8 - 4;
+        if (size < 5) {
+            size += 0.02f;
+        }
+      }
+    }
 }
 
 static void draw(void) {
-    animation();
-    static GLfloat pos_ship = 0.0f;
-    static GLfloat size = 0.0f;
+    if(start == 1){
+      animation();
+    } else if(step1 == 1){
+      _cam.a += 0.03f;
+      _cam.b += 0.03f;
+      if(_cam.a > 2.45f){
+        step1 = 0;
+        step2  = 1;
+        _cam.c = 50;
+      }
+    }
+    else if(step2 == 1){
+      _cam.a -= 0.01f;
+      _cam.b -= 0.01f;
+      if(_cam.a < 0.06f){
+        step2 = 0;
+        step3 = 1;
+        _cam.a = -15;
+        _cam.b = -16;
+        _cam.c = -47;
+      }
+    }
+    else if(step3 == 1){
+      _cam.c -= 0.01f;
+      _cam.a += 0.01f;
+      if(_cam.a > -10.61f){
+        step3 = 0;
+        _cam.a = 0;
+        _cam.b = 0;
+        _cam.c = -40;
+        start = 1;
+      }
+    } 
+    
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     gl4duBindMatrix("modelViewMatrix");
     gl4duLoadIdentityf();
-    gl4duLookAtf(_cam.a, _cam.b, _cam.c, _cam.d, _cam.e, _cam.f, _cam.g, _cam.h, _cam.i);
+    gl4duLookAtf(_cam.a, _cam.b, _cam.c, 0,0, 0,0, 1,0);
     glUseProgram(_pId);
-
     gl4duTranslatef(5, 5, -50);
     gl4duPushMatrix(); {
-          gl4duTranslatef(5, 5, 50);
-
-        gl4duScalef(10.0f, 10.0f,10.0f);
-        gl4duSendMatrices();
+      gl4duTranslatef(5, 5, 50);
+      gl4duScalef(10.0f, 10.0f,10.0f);
+      gl4duSendMatrices();
     }
     gl4duPopMatrix();
     glUniform4fv(glGetUniformLocation(_pId, "couleur"), 1, orange);
     gl4dgDraw(_sphere);
-
 
     for (int i = 0; i < 10; i++) {
         gl4duPushMatrix(); {
@@ -345,48 +394,31 @@ static void draw(void) {
         glUniform4fv(glGetUniformLocation(_pId, "couleur"), 1, orange);
         gl4dgDraw(_sphere);
     }
-    //random max_particle between 0 and 2
-    for (int i = 0; i < 20; i++) {
-        _particles[i].x -= _particles[i].i;
-        if (_particles[i].x < -8) {
-            size = 0.0f;
-            _particles[i].i = (float) rand() / (float) RAND_MAX * 0.05f + 0.05f;
-            _particles[i].x = -5;
 
-            //random yparticle between -5 and 5 float
-            _particles[i].y = (float) rand() / (float) RAND_MAX * 10 - 5;
-            
-            if (size < 5) {
-                size += 0.02f;
-            }
-        }
-    }
     gl4duLoadIdentityf();
     gl4duSendMatrices();
     gl4duBindMatrix("modelViewMatrix");
     gl4duLoadIdentityf();
-    gl4duLookAtf(_cam.a, _cam.b, _cam.c, _cam.d, _cam.e, _cam.f, _cam.g, _cam.h, _cam.i);
+    gl4duLookAtf(_cam.a, _cam.b, _cam.c, 0,0, 0,0, 1,0);
     glUseProgram(_pId2);
-   
     gl4duTranslatef(_spaceship.x, _spaceship.y, _spaceship.z);
     gl4duPushMatrix(); {
-
         gl4duRotatef(280, 1, 0, 0);
         gl4duRotatef(60, 0, 0, 1);
         gl4duRotatef(i, 1, 0, 0);
         gl4duScalef(1, 1, 1);
-        for (int i = 0; i < 10; i++) {
-              glUseProgram(_pId3);
-            gl4duPushMatrix(); {
-                gl4duTranslatef(_particles[i].x, _particles[i].y, 0);
-                gl4duScalef(size * 2, size * 2, size * 2);
-                gl4duSendMatrices();
-            }
-            gl4duPopMatrix();
-            glUniform4fv(glGetUniformLocation(_pId3, "couleur"), 1, violet);
-            gl4dgDraw(_cube);
+        for (int i = 0; i < 20; i++) {
+          glUseProgram(_pId3);
+          gl4duPushMatrix(); {
+            gl4duTranslatef(_particles[i].x, _particles[i].y, 0);
+            gl4duScalef(size * 2, size * 2, size * 2);
+            gl4duSendMatrices();
+          }
+          gl4duPopMatrix();
+          glUniform4fv(glGetUniformLocation(_pId3, "couleur"), 1, violet);
+          gl4dgDraw(_cube);
         }
-            glUseProgram(_pId2);
+        glUseProgram(_pId2);
         gl4duSendMatrices();
     }
     gl4duPopMatrix();
@@ -427,25 +459,44 @@ static void draw(void) {
     glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, (const GLvoid * )(116 * sizeof(GLuint)));
 
     gl4duSendMatrices();
-    /* Dessiner le VAO comme une bande d'un triangle avec 3 sommets
-     * commençant à 0
-     *
-     * Attention ! Maintenant nous dessinons avec DrawElement qui
-     * utilise les indices des sommets poassés pour mailler */
-    /* dé-lier le VAO */
     glBindVertexArray(0);
-    /* désactiver le programme shader */
     glUseProgram(0);
 }
 
-/*!\brief appelée au moment de sortir du programme (atexit), libère les éléments utilisés */
+static void mixCallback(void *udata, Uint8 *stream, int len) {
+  int i;
+  Sint16 *s = (Sint16 *)stream;
+  if(len >= 2 * ECHANTILLONS)
+    for(i = 0; i < ECHANTILLONS; i++)
+      _hauteurs[i] = _wH / 2 + (_wH / 2) * s[i] / ((1 << 15) - 1.0);
+  return;
+}
+static void initAudio(const char * filename) {
+  int mixFlags = MIX_INIT_OGG | MIX_INIT_MP3 | MIX_INIT_MOD, res;
+  res = Mix_Init(mixFlags);
+  if( (res & mixFlags) != mixFlags ) {
+    fprintf(stderr, "Mix_Init: Erreur lors de l'initialisation de la bibliotheque SDL_Mixer\n");
+    fprintf(stderr, "Mix_Init: %s\n", Mix_GetError());
+  }
+  if(Mix_OpenAudio(44100, AUDIO_S16LSB, 2, 1024) < 0)
+    exit(4);
+  if(!(_mmusic = Mix_LoadMUS(filename))) {
+    fprintf(stderr, "Erreur lors du Mix_LoadMUS: %s\n", Mix_GetError());
+    exit(5);
+  }
+  Mix_SetPostMix(mixCallback, NULL);
+  if(!Mix_PlayingMusic())
+    Mix_PlayMusic(_mmusic, 1);
+}
+
 static void quit(void) {
-    /* suppression du VAO _vao en GPU */
-    if (_vao)
-        glDeleteVertexArrays(1, & _vao);
-    /* suppression du VBO _buffer en GPU, maintenant il y en a deux */
-    if (_buffer[0])
-        glDeleteBuffers(2, _buffer);
-    /* nettoyage des éléments utilisés par la bibliothèque GL4Dummies */
+  if(_mmusic) {
+    if(Mix_PlayingMusic())
+      Mix_HaltMusic();
+    Mix_FreeMusic(_mmusic);
+    _mmusic = NULL;
+  }
+    if (_vao) glDeleteVertexArrays(1, & _vao);
+    if (_buffer[0]) glDeleteBuffers(2, _buffer);
     gl4duClean(GL4DU_ALL);
 }

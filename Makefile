@@ -15,17 +15,17 @@ CP = rsync -R
 # déclaration des options du compilateur
 CFLAGS = -Wall -O3
 CPPFLAGS = -I.
-LDFLAGS = -lm
+LDFLAGS = -lm -lSDL2_mixer
 
 # définition des fichiers et dossiers
-PROGNAME = deplacements_3d
+PROGNAME = musique
 VERSION = 1.0
 distdir = $(PROGNAME)-$(VERSION)
 HEADERS = 
 SOURCES = window.c
 OBJ = $(SOURCES:.c=.o)
 DOXYFILE = documentation/Doxyfile
-EXTRAFILES = COPYING $(wildcard shaders/*.?s) 
+EXTRAFILES = COPYING $(wildcard audio/*) 
 DISTFILES = $(SOURCES) Makefile $(HEADERS) $(DOXYFILE) $(EXTRAFILES)
 
 # Traitement automatique (ne pas modifier)
