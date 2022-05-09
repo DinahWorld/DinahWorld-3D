@@ -13,5 +13,5 @@ void main(void) {
   vec3 N = normalize(vsoNormal);
   vec3 L = normalize(vec3(-1, -1, 0)); /*vers le bas vers la gauche*/
   float diffuse = dot(N, -L);
-  fragColor = vec4((couleur.rgb * diffuse), couleur.a);
+  fragColor = vec4((couleur.rgb), couleur.a);
 }
